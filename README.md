@@ -1,9 +1,9 @@
 # Dynamic Payload Estimation in Commercial Vehicles using PINNs
 
-This repository implements and compares **Physics-Informed Neural Networks (PINNs)** for real-time payload (mass) estimation in commercial vehicles using telemetría data.
+This repository implements and compares **Physics-Informed Neural Networks (PINNs)** for real-time payload (mass) estimation in commercial vehicles using telemetry data.
 
 The project evaluates two primary data acquisition methodologies:
-1. **Direct Mechanical Model (Suspension Sensor):** An empirical success utilizing suspension displacement data. For the furgoneta Peugeot Partner, it achieves a Gaussian error distribution ($\mu \approx 14.6 \text{ kg}$, $R^2 \approx 0.94$).
+1. **Direct Mechanical Model (Suspension Sensor):** Reconstructs vertical displacement to estimate payload. For the Peugeot Partner van, it achieves a Gaussian error distribution ($\mu \approx 14.6 \text{ kg}$, $R^2 \approx 0.94$).
 2. **Indirect Thermodynamic Model (OBD Engine Data):** Resolves longitudinal power balance equations based on fuel consumption telemetry. It serves as an alternative for vehicles without dedicated suspension displacement instrumentation.
 
 While the modular codebase (`.py` files) retains the parameters and data pipelines for other vehicles (such as the **Freightliner Tractocamión** and the **RAM 1500**), the main orchestrator focuses on the **Peugeot Partner**, which represents the validated core methodology of this research.
@@ -27,12 +27,12 @@ The project is organized as a clean, modular python package suitable for researc
 │   ├── NB1_Test1_OBD_Tracto.ipynb
 │   └── NB1_Test1_Sensor_Peugeot.ipynb
 ├── src/                        # Core Python library modules
-│   ├── models.py               # PyTorch neural network definitions (TermodinamicaPINN, SuspensionPINN)
+│   ├── models.py               # PyTorch neural network definitions (ThermodynamicPINN, SuspensionPINN)
 │   ├── physics.py              # Physics loss formulations (longitudinal power balance, suspension force equations)
 │   ├── data_utils.py           # Preprocessing pipelines, deflection conversions, and Tripwire filters
 │   ├── train.py                # Training engines (window-based incremental and memory-inherited loops)
 │   └── visualizations.py       # Evaluation reports and plot templates (KDE errors, temporal plots)
-├── orquestador.ipynb           # Main Jupyter orchestrator executing Peugeot Partner validations
+├── orchestrator.ipynb           # Main Jupyter orchestrator executing Peugeot Partner validations
 └── README.md                   # Repository overview
 ```
 
@@ -62,12 +62,12 @@ $$P_{disp} = \rho_{fuel} \cdot (\text{Fuel Flow} - \text{Idle Burn}) \cdot LHV_f
 
 The codebase supports physical settings configured for multiple vehicle classes:
 
-| Parameter / Constant | Furgoneta (Peugeot Partner) | Pick-up (RAM 1500 - Adaptable) | Heavy Truck (Freightliner Tracto) |
+| Parameter / Constant | Van (Peugeot Partner) | Pick-up (RAM 1500 - Adaptable) | Heavy Truck (Freightliner Tracto) |
 | :--- | :--- | :--- | :--- |
 | **Base Mass (`M_BASE`)** | $1301 \text{ kg}$ (Tare + driver) | $\approx 2200 \text{ kg}$ (Estimated) | $9480 \text{ kg}$ (Tare + diesel + driver) |
 | **Aerodynamic Area (`A_F`)**| $2.5 \text{ m}^2$ | $3.2 \text{ m}^2$ | $10.5 \text{ m}^2$ |
 | **Drag Coeff. (`C_D`)** | $0.35$ | $0.38$ | $0.60$ |
-| **Engine Efficiency ($\eta$)**| $12\% - 15\%$ (Gasoline) | $15\% - 18\%$ (Gasolina) | $40\%$ (Heavy Diesel) |
+| **Engine Efficiency ($\eta$)**| $12\% - 15\%$ (Gasoline) | $15\% - 18\%$ (Gasoline) | $40\%$ (Heavy Diesel) |
 | **Lower Heating Value (`LHV`)**| $43 \text{ MJ/kg}$ | $43 \text{ MJ/kg}$ | $43 \text{ MJ/kg}$ |
 | **Idle Fuel Rate (`Idle`)**| $0.0018 \text{ L/s}$ | $0.0022 \text{ L/s}$ | $0.0 \text{ L/s}$ (Drawn from diesel curve) |
 | **Suspension Stiffness ($K_1$)**| $84705.20 \text{ N/m}$ | N/A | N/A |
@@ -75,7 +75,7 @@ The codebase supports physical settings configured for multiple vehicle classes:
 
 ---
 
-## Tripwire Logic (Cable Trampa)
+## Tripwire Logic
 
 In thermodynamic mass estimation, transient anomalies (such as mechanical braking energy loss not registered in fuel consumption data, or clutching events) can corrupt the optimization gradients. To solve this, a sequence of logical gates (Tripwire Logic) filters out corrupt windows. A time window is discarded if:
 
@@ -98,6 +98,6 @@ pip install torch pandas numpy matplotlib seaborn scikit-learn openpyxl
 ```
 
 ### 2. Execution
-Run `orquestador.ipynb` within your preferred notebook interface (Jupyter Lab, VS Code, etc.). 
+Run `orchestrator.ipynb` within your preferred notebook interface (Jupyter Lab, VS Code, etc.). 
 
 The notebook imports the modular libraries, runs the Peugeot Partner mechanical suspension simulation ($R^2 \approx 0.94$) and the thermodynamic power simulation, and generates evaluation plots.

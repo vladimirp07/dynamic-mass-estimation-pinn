@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def cargar_y_limpiar_sensor(file_path, sensor_vacio, smoothing_window=2, speed_threshold=1.0):
+def load_and_clean_sensor(file_path, sensor_empty, smoothing_window=2, speed_threshold=1.0):
     """
     Data cleaning and filtering pipeline for the Suspension Sensor PINN.
     Smooths raw signals, converts raw sensor reads to deflection, and removes physical anomalies.
@@ -16,14 +16,14 @@ def cargar_y_limpiar_sensor(file_path, sensor_vacio, smoothing_window=2, speed_t
     df = df[df['Speed_Smooth'] > speed_threshold].copy()
     
     # Convert suspension sensor read (mm) to vertical deflection (m)
-    df['Deflexion_m'] = (sensor_vacio - df['Sensor_Smooth']) / 1000.0
+    df['Deflection_m'] = (sensor_empty - df['Sensor_Smooth']) / 1000.0
     
     # Remove out-of-bound physical outliers
-    df = df[(df['Deflexion_m'] > -0.05) & (df['Deflexion_m'] < 0.15)]
+    df = df[(df['Deflection_m'] > -0.05) & (df['Deflection_m'] < 0.15)]
     return df
 
 
-def cargar_y_limpiar_obd_peugeot(file_path):
+def load_and_clean_obd_peugeot(file_path):
     """
     Data cleaning and traction masking pipeline for the Peugeot Partner OBD model.
     """
@@ -38,16 +38,16 @@ def cargar_y_limpiar_obd_peugeot(file_path):
     # Compute vehicle acceleration
     df['Delta_V'] = df['Speed_Smooth'].diff()
     df['Delta_T'] = df['Acum time (s)'].diff().replace(0, np.nan)
-    df['Aceleracion_aprox'] = (df['Delta_V'] / df['Delta_T']).fillna(0.0)
+    df['acceleration_approx'] = (df['Delta_V'] / df['Delta_T']).fillna(0.0)
     
     # Traction Mask: only enforce physical loss when vehicle is accelerating above a speed limit
-    df['Mascara'] = ((df['Aceleracion_aprox'] > 0.1) & (df['Speed_Smooth'] > 2.0)).astype(float)
+    df['Mask'] = ((df['acceleration_approx'] > 0.1) & (df['Speed_Smooth'] > 2.0)).astype(float)
     
     df = df[df['Speed_Smooth'] > 1.0].copy()
     return df
 
 
-def cargar_y_limpiar_obd_tracto(file_path):
+def load_and_clean_obd_tracto(file_path):
     """
     Data cleaning pipeline for the Tracto Freightliner OBD model.
     """
@@ -64,40 +64,40 @@ def cargar_y_limpiar_obd_tracto(file_path):
     return df
 
 
-def evaluar_cable_trampa(ventana, vehiculo="peugeot"):
+def evaluate_tripwire(window, vehicle="peugeot"):
     """
     Validates a data window using experimental 'Cable Trampa' (Tripwire Logic) filters.
     Returns True if the window is valid, False if it should be discarded.
     """
-    aceleracion_aprox = ventana['Speed_Smooth'].diff().fillna(0)
+    acceleration_approx = window['Speed_Smooth'].diff().fillna(0)
     
-    if vehiculo == "peugeot" or vehiculo == "ram":
+    if vehicle == "peugeot" or vehicle == "ram":
         # 1. Fuel Flow limit (anomalies / signal spikes)
-        cond_combustible = (ventana['Fuel flow (L/s)'] > 0.006).any()
+        fuel_cond = (window['Fuel flow (L/s)'] > 0.006).any()
         # 2. Inertia coefficient mf limit (clutching/shifting noise)
-        cond_mf = (ventana['mf'] > 30.0).any()
+        mf_cond = (window['mf'] > 30.0).any()
         # 3. Low velocity limit (idling, combustion without traction work)
-        cond_velocidad = ventana['Speed_Smooth'].mean() < 3.0
+        speed_cond = window['Speed_Smooth'].mean() < 3.0
         # 4. Low cargo limit (empty or near-empty payloads are neglected)
-        cond_carga = ventana['Carga (kg)'].mean() < 70.0
+        payload_cond = window['Carga (kg)'].mean() < 70.0
         # 5. Traction vs Brake filter (expects accelerating/cruising state at least 60% of time)
-        cond_traccion = (aceleracion_aprox >= -0.1).mean() < 0.60
+        traction_cond = (acceleration_approx >= -0.1).mean() < 0.60
         # 6. Topographical noise
-        cond_topografia = ventana['Theta (rad)'].std() > 0.1
+        topography_cond = window['Theta (rad)'].std() > 0.1
         
-        if cond_combustible or cond_mf or cond_velocidad or cond_carga or cond_traccion or cond_topografia:
+        if fuel_cond or mf_cond or speed_cond or payload_cond or traction_cond or topography_cond:
             return False
             
-    elif vehiculo == "tracto":
+    elif vehicle == "tracto":
         # Heavily calibrated tripwires for large diesel engine tractocamión
-        cond_combustible = (ventana['Fuel flow (L/s)'] > 0.05).any()
-        cond_mf = (ventana['mf'] > 80.0).any()
-        cond_velocidad = ventana['Speed_Smooth'].mean() < 3.0
-        cond_carga = ventana['Carga (kg)'].mean() < 1000.0  # limit set to 1 ton
-        cond_traccion = (aceleracion_aprox >= -0.1).mean() < 0.60
-        cond_topografia = ventana['Theta (rad)'].std() > 0.1
+        fuel_cond = (window['Fuel flow (L/s)'] > 0.05).any()
+        mf_cond = (window['mf'] > 80.0).any()
+        speed_cond = window['Speed_Smooth'].mean() < 3.0
+        payload_cond = window['Carga (kg)'].mean() < 1000.0  # limit set to 1 ton
+        traction_cond = (acceleration_approx >= -0.1).mean() < 0.60
+        topography_cond = window['Theta (rad)'].std() > 0.1
         
-        if cond_combustible or cond_mf or cond_velocidad or cond_carga or cond_traccion or cond_topografia:
+        if fuel_cond or mf_cond or speed_cond or payload_cond or traction_cond or topography_cond:
             return False
             
     return True
