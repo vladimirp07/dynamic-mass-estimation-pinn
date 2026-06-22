@@ -45,7 +45,7 @@ Models the rear axle of the Peugeot Partner furgoneta as a non-linear spring-dam
 
 $$M \frac{d^2x}{dt^2} + C \frac{dx}{dt} + (K_1 \cdot x + K_2 \cdot x^2) - (M - M_{base}) g = 0$$
 
-*   **PINN Loss Function:** The model minimizes the mean squared error of the sensor displacement (data loss, scaled in mm$^2$) and the residual of the suspension force equation (physics loss, scaled in kN$^2$).
+*   **PINN Loss Function:** The model minimizes the mean squared error of the sensor displacement (data loss, scaled in mm²) and the residual of the suspension force equation (physics loss, scaled in kN²).
 
 ### 2. Thermodynamic Power Balance Model
 Equilibrates available combustion power ($P_{disp}$) generated from fuel rate with the power required to overcome longitudinal resistance forces ($P_{req}$):
@@ -65,13 +65,13 @@ The codebase supports physical settings configured for multiple vehicle classes:
 | Parameter / Constant | Van (Peugeot Partner) | Pick-up (RAM 1500 - Adaptable) | Heavy Truck (Freightliner Tracto) |
 | :--- | :--- | :--- | :--- |
 | **Base Mass (`M_BASE`)** | $1301 \text{ kg}$ (Tare + driver) | $\approx 2200 \text{ kg}$ (Estimated) | $9480 \text{ kg}$ (Tare + diesel + driver) |
-| **Aerodynamic Area (`A_F`)**| $2.5 \text{ m}^2$ | $3.2 \text{ m}^2$ | $10.5 \text{ m}^2$ |
+| **Aerodynamic Area (`A_F`)**| 2.5 m² | 3.2 m² | 10.5 m² |
 | **Drag Coeff. (`C_D`)** | $0.35$ | $0.38$ | $0.60$ |
 | **Engine Efficiency ($\eta$)**| $12\% - 15\%$ (Gasoline) | $15\% - 18\%$ (Gasoline) | $40\%$ (Heavy Diesel) |
 | **Lower Heating Value (`LHV`)**| $43 \text{ MJ/kg}$ | $43 \text{ MJ/kg}$ | $43 \text{ MJ/kg}$ |
 | **Idle Fuel Rate (`Idle`)**| $0.0018 \text{ L/s}$ | $0.0022 \text{ L/s}$ | $0.0 \text{ L/s}$ (Drawn from diesel curve) |
 | **Suspension Stiffness ($K_1$)**| $84705.20 \text{ N/m}$ | N/A | N/A |
-| **Suspension Stiffness ($K_2$)**| $2903352.28 \text{ N/m}^2$| N/A | N/A |
+| **Suspension Stiffness ($K_2$)**| 2903352.28 N/m²| N/A | N/A |
 
 ---
 
