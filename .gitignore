@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Datasets and original research backups (User request)
+data/
+legacy/
+
+# Residual directories
+NB1/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE / Editor configurations
+.vscode/
+.idea/
+.ipynb_checkpoints
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
