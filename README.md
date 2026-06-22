@@ -26,11 +26,12 @@ The project is organized as a clean, modular python package suitable for researc
 │   ├── NB1_Test1_OBD_Peugeot.ipynb
 │   ├── NB1_Test1_OBD_Tracto.ipynb
 │   └── NB1_Test1_Sensor_Peugeot.ipynb
-├── models.py                   # PyTorch neural network definitions (TermodinamicaPINN, SuspensionPINN)
-├── physics.py                  # Physics loss formulations (longitudinal power balance, suspension force equations)
-├── data_utils.py               # Preprocessing pipelines, deflection conversions, and Tripwire filters
-├── train.py                    # Training engines (window-based incremental and memory-inherited loops)
-├── visualizations.py           # Evaluation reports and plot templates (KDE errors, temporal plots)
+├── src/                        # Core Python library modules
+│   ├── models.py               # PyTorch neural network definitions (TermodinamicaPINN, SuspensionPINN)
+│   ├── physics.py              # Physics loss formulations (longitudinal power balance, suspension force equations)
+│   ├── data_utils.py           # Preprocessing pipelines, deflection conversions, and Tripwire filters
+│   ├── train.py                # Training engines (window-based incremental and memory-inherited loops)
+│   └── visualizations.py       # Evaluation reports and plot templates (KDE errors, temporal plots)
 ├── orquestador.ipynb           # Main Jupyter orchestrator executing Peugeot Partner validations
 └── README.md                   # Repository overview
 ```
